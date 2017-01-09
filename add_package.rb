@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require "aws-sdk"
 require "mixlib/cli"
+require "mixlib/shellout"
 require_relative "platforms"
 
 class SensuPackageCLI
@@ -79,6 +80,8 @@ def run_commands(commands)
   puts "running commands..."
   commands.each do |command|
     puts command
+    cmd = Mixlib::ShellOut.new(command)
+    cmd.run_command
   end
   puts
 end
@@ -129,9 +132,10 @@ PLATFORMS.each do |name, data|
 
       case name
       when "debian", "ubuntu"
+        codename = details["codename"]
         cwd = File.join(base_path, "freight")
         manager = "apt"
-        commands << "cd #{cwd} && freight add -c /srv/freight/freight.conf #{source_path} apt/#{name}/#{channel}"
+        commands << "cd #{cwd} && sudo -u freight -- freight add -c /srv/freight/freight.conf #{destination_path} apt/#{codename}/#{channel}"
       end
     end
   end
@@ -142,12 +146,12 @@ PLATFORMS.each do |platform, data|
   case platform
   when "debian", "ubuntu"
     cwd = File.join(base_path, "freight")
-    commands << "cd #{cwd} && freight cache -c /srv/freight/freight.conf"
+    commands << "cd #{cwd} && sudo -H -u freight -- freight cache -c /srv/freight/freight.conf"
   when "el"
     data["versions"].each do |version, details|
       details["architectures"].each do |architecture|
         cwd = File.join(base_path, "createrepo", channel, version, architecture)
-        commands << "cd #{cwd} && createrepo -s sha ."
+        commands << "cd #{cwd} && sudo -u createrepo -- createrepo -s sha ."
       end
     end
   when "freebsd"
