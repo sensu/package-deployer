@@ -119,7 +119,7 @@ PLATFORMS.each do |name, data|
       when "freebsd"
         filename = "sensu-#{sensu_version}_#{build_number}.txz"
         abi = "FreeBSD:#{version}:#{architecture}"
-        destination_path = File.join(base_path, "freebsd", abi, channel, "sensu", filename)
+        destination_path = File.join(base_path, "freebsd", channel, abi, "sensu", filename)
       else
         raise "unsupported platform"
       end
