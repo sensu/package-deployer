@@ -37,10 +37,42 @@ end
 
 def fetch_artifacts(artifacts)
   puts "fetching artifacts..."
+
+  # connect to s3 here
+  @s3 ||= Aws::S3::Client.new(:region => ENV["AWS_REGION"])
   artifacts.each do |source, destination|
-    puts "#{source} => #{destination}"
+    destination_dir = File.dirname(destination)
+    FileUtils.mkdir_p(destination_dir)
+
+    # copy from s3 here
+    if File.exist?(destination)
+      puts "Skipping #{source} as #{destination} already exists"
+    else
+      begin
+        puts "Downloading sensu-omnibus-artifacts/#{source} => #{destination}"
+        resp = @s3.get_object(
+          :response_target => destination,
+          :bucket => 'sensu-omnibus-artifacts',
+          :key => source
+        )
+        puts resp.metadata
+      rescue Aws::S3::Errors::NoSuchKey => e
+        puts "Failed to retrieve #{source}: #{e}"
+      end
+    end
   end
-  puts
+end
+
+def fix_permissions(platforms)
+  platforms.each_pair do |name, data|
+    base_path = data["base_path"]
+    raise "platform #{name} does not specify repository base_path" if base_path.nil?
+    destination_owner = File.stat(base_path).uid
+    destination_group = File.stat(base_path).gid
+    puts "fixing permissions for #{base_path} with uid #{destination_owner}, gid #{destination_group}"
+    permissions_result = FileUtils.chown_R(destination_owner, destination_group, base_path, :verbose => true)
+    puts permissions_result
+  end
 end
 
 def run_commands(commands)
@@ -60,15 +92,25 @@ base_path = "/srv"
 artifacts = {}
 commands = []
 
-PLATFORMS.each do |name, versions|
-  versions.each do |version, details|
+PLATFORMS.each do |name, data|
+  data["versions"].each do |version, details|
     details["architectures"].each do |architecture|
-      source_path = File.join(name, version, architecture)
+      source_path = case name
+      when "debian", "ubuntu", "el"
+        if architecture == "i386"
+          File.join(name, version, "i686")
+        else
+          File.join(name, version, architecture)
+        end
+      else
+        File.join(name, version, architecture)
+      end
+
       destination_path = nil
 
       case name
       when "debian", "ubuntu"
-        filename = "sensu_#{sensu_version}-#{build_number}_#{architecture}.deb"
+        filename = "sensu_#{sensu_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
         codename = details["codename"]
         destination_path = File.join("/tmp", "apt", codename, channel, filename)
       when "el"
@@ -96,20 +138,20 @@ PLATFORMS.each do |name, versions|
 end
 
 # repository re-indexing
-PLATFORMS.each do |platform, versions|
+PLATFORMS.each do |platform, data|
   case platform
   when "debian", "ubuntu"
     cwd = File.join(base_path, "freight")
     commands << "cd #{cwd} && freight cache -c /srv/freight/freight.conf"
   when "el"
-    versions.each do |version, details|
+    data["versions"].each do |version, details|
       details["architectures"].each do |architecture|
         cwd = File.join(base_path, "createrepo", channel, version, architecture)
         commands << "cd #{cwd} && createrepo -s sha ."
       end
     end
   when "freebsd"
-    versions.each do |version, details|
+    data["versions"].each do |version, details|
       details["architectures"].each do |architecture|
         abi = "FreeBSD:#{version}:#{architecture}"
         cwd = File.join(base_path, "freebsd", abi, channel)
@@ -120,4 +162,5 @@ PLATFORMS.each do |platform, versions|
 end
 
 fetch_artifacts(artifacts)
+fix_permissions(PLATFORMS)
 run_commands(commands)
