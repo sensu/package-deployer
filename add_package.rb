@@ -114,6 +114,7 @@ PLATFORMS.each do |name, data|
       case name
       when "aix"
         filename = "sensu-#{sensu_version}-#{build_number}.#{architecture}.bff"
+        destination_path = File.join(base_path, "aix", channel, version, filename)
       when "debian", "ubuntu"
         filename = "sensu_#{sensu_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
         codename = details["codename"]
