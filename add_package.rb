@@ -126,7 +126,7 @@ PLATFORMS.each do |name, data|
         filename = "sensu-#{sensu_version}_#{build_number}.txz"
         abi = "FreeBSD:#{version}:#{architecture}"
         destination_path = File.join(base_path, "freebsd", channel, abi, "sensu", filename)
-      when "solaris"
+      when "solaris2"
         case version
         when "5.10"
           filename = "sensu-#{sensu_version}-#{build_number}.#{architecture}.solaris"
