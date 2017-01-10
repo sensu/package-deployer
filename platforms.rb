@@ -1,4 +1,12 @@
 PLATFORMS = {
+  "aix" => {
+    "base_path" => "/srv/aix",
+    "versions" => {
+      "6.1" => {
+        "architectures" => ["powerpc"]
+      }
+    }
+  },
   "debian" => {
     "base_path" => "/srv/freight",
     "versions" => {
@@ -34,6 +42,17 @@ PLATFORMS = {
       },
       "11" => {
         "architectures" => ["amd64"]
+      }
+    }
+  },
+  "solaris" => {
+    "base_path" => "/srv/solaris",
+    "versions" => {
+      "5.10" => {
+        "architectures" => ["i386"]
+      },
+      "5.11" => {
+        "architectures" => ["i386"]
       }
     }
   },

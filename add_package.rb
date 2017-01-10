@@ -112,6 +112,8 @@ PLATFORMS.each do |name, data|
       destination_path = nil
 
       case name
+      when "aix"
+        filename = "sensu-#{sensu_version}-#{build_number}.#{architecture}.bff"
       when "debian", "ubuntu"
         filename = "sensu_#{sensu_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
         codename = details["codename"]
@@ -119,13 +121,22 @@ PLATFORMS.each do |name, data|
       when "el"
         filename = "sensu-#{sensu_version}-#{build_number}.el#{version}.#{architecture}.rpm"
         destination_path = File.join(base_path, "createrepo", channel, version, architecture, filename)
-      when "windows"
-        filename = "sensu-#{sensu_version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
-        destination_path = File.join(base_path, "msi", channel, version, filename)
       when "freebsd"
         filename = "sensu-#{sensu_version}_#{build_number}.txz"
         abi = "FreeBSD:#{version}:#{architecture}"
         destination_path = File.join(base_path, "freebsd", channel, abi, "sensu", filename)
+      when "solaris"
+        case version
+        when "5.10"
+          filename = "sensu-#{sensu_version}-#{build_number}.#{architecture}.solaris"
+          destination_path = File.join(base_path, "solaris", "pkg", channel, version, filename)
+        when "5.11"
+          filename = "sensu-#{sensu_version}-#{build_number}.#{architecture}.p5p"
+          destination_path = File.join(base_path, "solaris", "ips", channel, version, filename)
+        end
+      when "windows"
+        filename = "sensu-#{sensu_version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
+        destination_path = File.join(base_path, "msi", channel, version, filename)
       else
         raise "unsupported platform"
       end
