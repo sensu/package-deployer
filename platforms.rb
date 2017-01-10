@@ -53,5 +53,13 @@ PLATFORMS = {
         "architectures" => ["x86_64"]
       }
     }
+  },
+  "windows" => {
+    "base_path" => "/srv/msi",
+    "versions" => {
+      "2012r2" => {
+        "architectures" => ["x86_64"]
+      }
+    }
   }
 }

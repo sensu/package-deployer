@@ -119,6 +119,9 @@ PLATFORMS.each do |name, data|
       when "el"
         filename = "sensu-#{sensu_version}-#{build_number}.el#{version}.#{architecture}.rpm"
         destination_path = File.join(base_path, "createrepo", channel, version, architecture, filename)
+      when "windows"
+        filename = "sensu-#{sensu_version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
+        destination_path = File.join(base_path, "msi", channel, version, filename)
       when "freebsd"
         filename = "sensu-#{sensu_version}_#{build_number}.txz"
         abi = "FreeBSD:#{version}:#{architecture}"
