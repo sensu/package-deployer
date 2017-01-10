@@ -45,7 +45,7 @@ PLATFORMS = {
       }
     }
   },
-  "solaris" => {
+  "solaris2" => {
     "base_path" => "/srv/solaris",
     "versions" => {
       "5.10" => {
