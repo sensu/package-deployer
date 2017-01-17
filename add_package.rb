@@ -118,7 +118,7 @@ PLATFORMS.each do |name, data|
       when "debian", "ubuntu"
         filename = "sensu_#{sensu_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
         codename = details["codename"]
-        destination_path = File.join("/tmp", "apt", codename, channel, filename)
+        destination_path = File.join("/tmp", "apt", codename, filename)
       when "el"
         filename = "sensu-#{sensu_version}-#{build_number}.el#{version}.#{architecture}.rpm"
         destination_path = File.join(base_path, "createrepo", channel, version, architecture, filename)
