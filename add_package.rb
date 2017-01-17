@@ -147,7 +147,7 @@ PLATFORMS.each do |name, data|
 
       case name
       when "debian", "ubuntu"
-        codename = details["codename"]
+        codename = details["codename"] == "stable" ? "main" : "unstable"
         cwd = File.join(base_path, "freight")
         manager = "apt"
         commands << "cd #{cwd} && sudo -u freight -- freight add -c /srv/freight/freight.conf #{destination_path} apt/#{codename}/#{channel}"
