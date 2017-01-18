@@ -7,33 +7,40 @@ require_relative "platforms"
 class SensuPackageCLI
   include Mixlib::CLI
 
-  option :channel,
-  :short => "-c CHANNEL",
-  :long => "--channel CHANNEL",
-  :default => "unstable",
-  :description => "The channel to use [stable|unstable]",
-  :in => ["unstable", "stable"]
+  option :project,
+    :short => "-p PROJECT",
+    :long => "--project PROJECT",
+    :default => "sensu",
+    :description => "the software project to use [sensu|uchiwa]",
+    :in => ["sensu", "uchiwa"]
 
-  option :sensu_version,
-  :short => "-v SENSU_VERSION",
-  :long => "--version SENSU_VERSION",
-  :description => "The version of Sensu",
-  :required => true
+  option :channel,
+    :short => "-c CHANNEL",
+    :long => "--channel CHANNEL",
+    :default => "unstable",
+    :description => "The channel to use [stable|unstable]",
+    :in => ["unstable", "stable"]
+
+  option :project_version,
+    :short => "-v PROJECT_VERSION",
+    :long => "--version PROJECT_VERSION",
+    :description => "The version of Sensu",
+    :required => true
 
   option :build_number,
-  :short => "-n BUILD_NUMBER",
-  :long => "--build-number BUILD_NUMBER",
-  :description => "The version of Sensu",
-  :required => true
+    :short => "-n BUILD_NUMBER",
+    :long => "--build-number BUILD_NUMBER",
+    :description => "The version of Sensu",
+    :required => true
 
   option :help,
-  :short => "-h",
-  :long => "--help",
-  :description => "Show this message",
-  :on => :tail,
-  :boolean => true,
-  :show_options => true,
-  :exit => 0
+    :short => "-h",
+    :long => "--help",
+    :description => "Show this message",
+    :on => :tail,
+    :boolean => true,
+    :show_options => true,
+    :exit => 0
 end
 
 def fetch_artifacts(artifacts)
@@ -89,7 +96,8 @@ end
 cli = SensuPackageCLI.new
 cli.parse_options
 channel = cli.config[:channel]
-sensu_version = cli.config[:sensu_version]
+project = cli.config[:project]
+version = cli.config[:project_version]
 build_number = cli.config[:build_number]
 base_path = "/srv"
 artifacts = {}
@@ -113,30 +121,30 @@ PLATFORMS.each do |name, data|
 
       case name
       when "aix"
-        filename = "sensu-#{sensu_version}-#{build_number}.#{architecture}.bff"
+        filename = "#{project}-#{version}-#{build_number}.#{architecture}.bff"
         destination_path = File.join(base_path, "aix", channel, version, filename)
       when "debian", "ubuntu"
-        filename = "sensu_#{sensu_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
+        filename = "#{project}_#{version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
         codename = details["codename"]
         destination_path = File.join("/tmp", "apt", codename, filename)
       when "el"
-        filename = "sensu-#{sensu_version}-#{build_number}.el#{version}.#{architecture}.rpm"
+        filename = "#{project}-#{version}-#{build_number}.el#{version}.#{architecture}.rpm"
         destination_path = File.join(base_path, "createrepo", channel, version, architecture, filename)
       when "freebsd"
-        filename = "sensu-#{sensu_version}_#{build_number}.txz"
+        filename = "#{project}-#{version}_#{build_number}.txz"
         abi = "FreeBSD:#{version}:#{architecture}"
-        destination_path = File.join(base_path, "freebsd", channel, abi, "sensu", filename)
+        destination_path = File.join(base_path, "freebsd", channel, abi, project, filename)
       when "solaris2"
         case version
         when "5.10"
-          filename = "sensu-#{sensu_version}-#{build_number}.#{architecture}.solaris"
+          filename = "#{project}-#{version}-#{build_number}.#{architecture}.solaris"
           destination_path = File.join(base_path, "solaris", "pkg", channel, version, filename)
         when "5.11"
-          filename = "sensu-#{sensu_version}-#{build_number}.#{architecture}.p5p"
+          filename = "#{project}-#{version}-#{build_number}.#{architecture}.p5p"
           destination_path = File.join(base_path, "solaris", "ips", channel, version, filename)
         end
       when "windows"
-        filename = "sensu-#{sensu_version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
+        filename = "#{project}-#{version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
         destination_path = File.join(base_path, "msi", channel, version, filename)
       else
         raise "unsupported platform"
