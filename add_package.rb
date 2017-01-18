@@ -97,7 +97,7 @@ cli = SensuPackageCLI.new
 cli.parse_options
 channel = cli.config[:channel]
 project = cli.config[:project]
-version = cli.config[:project_version]
+project_version = cli.config[:project_version]
 build_number = cli.config[:build_number]
 base_path = "/srv"
 artifacts = {}
@@ -121,30 +121,30 @@ PLATFORMS.each do |name, data|
 
       case name
       when "aix"
-        filename = "#{project}-#{version}-#{build_number}.#{architecture}.bff"
+        filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.bff"
         destination_path = File.join(base_path, "aix", channel, version, filename)
       when "debian", "ubuntu"
-        filename = "#{project}_#{version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
+        filename = "#{project}_#{project_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
         codename = details["codename"]
         destination_path = File.join("/tmp", "apt", codename, filename)
       when "el"
-        filename = "#{project}-#{version}-#{build_number}.el#{version}.#{architecture}.rpm"
+        filename = "#{project}-#{project_version}-#{build_number}.el#{version}.#{architecture}.rpm"
         destination_path = File.join(base_path, "createrepo", channel, version, architecture, filename)
       when "freebsd"
-        filename = "#{project}-#{version}_#{build_number}.txz"
+        filename = "#{project}-#{project_version}_#{build_number}.txz"
         abi = "FreeBSD:#{version}:#{architecture}"
         destination_path = File.join(base_path, "freebsd", channel, abi, project, filename)
       when "solaris2"
         case version
         when "5.10"
-          filename = "#{project}-#{version}-#{build_number}.#{architecture}.solaris"
+          filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.solaris"
           destination_path = File.join(base_path, "solaris", "pkg", channel, version, filename)
         when "5.11"
-          filename = "#{project}-#{version}-#{build_number}.#{architecture}.p5p"
+          filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.p5p"
           destination_path = File.join(base_path, "solaris", "ips", channel, version, filename)
         end
       when "windows"
-        filename = "#{project}-#{version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
+        filename = "#{project}-#{project_version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
         destination_path = File.join(base_path, "msi", channel, version, filename)
       else
         raise "unsupported platform"
