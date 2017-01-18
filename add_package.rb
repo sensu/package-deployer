@@ -11,14 +11,14 @@ class SensuPackageCLI
     :short => "-p PROJECT",
     :long => "--project PROJECT",
     :default => "sensu",
-    :description => "the software project to use [sensu|uchiwa]",
+    :description => "the software project to use",
     :in => ["sensu", "uchiwa"]
 
   option :channel,
     :short => "-c CHANNEL",
     :long => "--channel CHANNEL",
     :default => "unstable",
-    :description => "The channel to use [stable|unstable]",
+    :description => "The channel to use",
     :in => ["unstable", "stable"]
 
   option :project_version,
