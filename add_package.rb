@@ -105,61 +105,66 @@ commands = []
 
 PLATFORMS.each do |name, data|
   data["versions"].each do |version, details|
-    details["architectures"].each do |architecture|
-      source_path = case name
-      when "debian", "ubuntu", "el"
-        if architecture == "i386"
-          File.join(name, version, "i686")
+    codenames = if details.key?("codename")
+      [details["codename"]].compact.flatten
+    else
+      [version]
+    end
+    codenames.each do |codename|
+      details["architectures"].each do |architecture|
+        source_path = case name
+        when "debian", "ubuntu", "el"
+          if architecture == "i386"
+            File.join(name, version, "i686")
+          else
+            File.join(name, version, architecture)
+          end
         else
           File.join(name, version, architecture)
         end
-      else
-        File.join(name, version, architecture)
-      end
 
-      destination_path = nil
+        destination_path = nil
 
-      case name
-      when "aix"
-        filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.bff"
-        destination_path = File.join(base_path, "aix", channel, version, filename)
-      when "debian", "ubuntu"
-        filename = "#{project}_#{project_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
-        codename = details["codename"]
-        destination_path = File.join("/tmp", "apt", codename, filename)
-      when "el"
-        filename = "#{project}-#{project_version}-#{build_number}.el#{version}.#{architecture}.rpm"
-        destination_path = File.join(base_path, "createrepo", channel, version, architecture, filename)
-      when "freebsd"
-        filename = "#{project}-#{project_version}_#{build_number}.txz"
-        abi = "FreeBSD:#{version}:#{architecture}"
-        destination_path = File.join(base_path, "freebsd", channel, abi, project, filename)
-      when "solaris2"
-        case version
-        when "5.10"
-          filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.solaris"
-          destination_path = File.join(base_path, "solaris", "pkg", channel, version, filename)
-        when "5.11"
-          filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.p5p"
-          destination_path = File.join(base_path, "solaris", "ips", channel, version, filename)
+        case name
+        when "aix"
+          filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.bff"
+          destination_path = File.join(base_path, "aix", channel, version, filename)
+        when "debian", "ubuntu"
+          filename = "#{project}_#{project_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
+          destination_path = File.join("/tmp", "apt", codename, filename)
+        when "el"
+          filename = "#{project}-#{project_version}-#{build_number}.el#{version}.#{architecture}.rpm"
+          destination_path = File.join(base_path, "createrepo", channel, version, architecture, filename)
+        when "freebsd"
+          filename = "#{project}-#{project_version}_#{build_number}.txz"
+          abi = "FreeBSD:#{version}:#{architecture}"
+          destination_path = File.join(base_path, "freebsd", channel, abi, project, filename)
+        when "solaris2"
+          case version
+          when "5.10"
+            filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.solaris"
+            destination_path = File.join(base_path, "solaris", "pkg", channel, version, filename)
+          when "5.11"
+            filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.p5p"
+            destination_path = File.join(base_path, "solaris", "ips", channel, version, filename)
+          end
+        when "windows"
+          filename = "#{project}-#{project_version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
+          destination_path = File.join(base_path, "msi", channel, version, filename)
+        else
+          raise "unsupported platform"
         end
-      when "windows"
-        filename = "#{project}-#{project_version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
-        destination_path = File.join(base_path, "msi", channel, version, filename)
-      else
-        raise "unsupported platform"
-      end
 
-      source_path = File.join(source_path, filename, filename)
-      artifacts[source_path] = destination_path
+        source_path = File.join(source_path, filename, filename)
+        artifacts[source_path] = destination_path
 
-      case name
-      when "debian", "ubuntu"
-        codename = details["codename"]
-        apt_channel = channel == "stable" ? "main" : channel
-        cwd = File.join(base_path, "freight")
-        manager = "apt"
-        commands << "cd #{cwd} && sudo -u freight -- freight add -c /srv/freight/freight.conf #{destination_path} apt/#{codename}/#{apt_channel}"
+        case name
+        when "debian", "ubuntu"
+          apt_channel = channel == "stable" ? "main" : channel
+          cwd = File.join(base_path, "freight")
+          manager = "apt"
+          commands << "cd #{cwd} && sudo -u freight -- freight add -c /srv/freight/freight.conf #{destination_path} apt/#{codename}/#{apt_channel}"
+        end
       end
     end
   end

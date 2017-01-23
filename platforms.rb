@@ -60,7 +60,11 @@ PLATFORMS = {
     "base_path" => "/srv/freight",
     "versions" => {
       "12.04" => {
-        "codename" => "precise",
+        "codename" => ["precise", "sensu"],
+        "architectures" => ["i386", "x86_64"]
+      },
+      "12.04" => {
+        "codename" => "sensu",
         "architectures" => ["i386", "x86_64"]
       },
       "14.04" => {
