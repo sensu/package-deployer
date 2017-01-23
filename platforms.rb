@@ -63,10 +63,6 @@ PLATFORMS = {
         "codename" => ["precise", "sensu"],
         "architectures" => ["i386", "x86_64"]
       },
-      "12.04" => {
-        "codename" => "sensu",
-        "architectures" => ["i386", "x86_64"]
-      },
       "14.04" => {
         "codename" => "trusty",
         "architectures" => ["i386", "x86_64"]
