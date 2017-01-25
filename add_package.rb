@@ -48,7 +48,7 @@ def fetch_artifacts(artifacts)
 
   # connect to s3 here
   @s3 ||= Aws::S3::Client.new(:region => ENV["AWS_REGION"])
-  artifacts.each do |source, destination|
+  artifacts.each do |destination, source|
     destination_dir = File.dirname(destination)
     FileUtils.mkdir_p(destination_dir)
 
@@ -156,7 +156,7 @@ PLATFORMS.each do |name, data|
         end
 
         source_path = File.join(source_path, filename, filename)
-        artifacts[source_path] = destination_path
+        artifacts[destination_path] = source_path
 
         case name
         when "debian", "ubuntu"
