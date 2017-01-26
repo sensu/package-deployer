@@ -1,11 +1,20 @@
 #!/usr/bin/env ruby
 require "aws-sdk"
 require "mixlib/cli"
+require "mixlib/config"
 require "mixlib/shellout"
 require_relative "platforms"
 
+class SensuPackageConfig
+  extend Mixlib::Config
+end
+
 class SensuPackageCLI
   include Mixlib::CLI
+
+  option :config_file,
+    :long => "--config CONFIG",
+    :default => "config.rb"
 
   option :project,
     :short => "-p PROJECT",
@@ -41,13 +50,42 @@ class SensuPackageCLI
     :boolean => true,
     :show_options => true,
     :exit => 0
+
+  option :bucket,
+    :long => "--bucket BUCKET",
+    :description => "AWS S3 Bucket Name",
+    :default => "sensu-omnibus-artifacts"
+
+  option :aws_region,
+    :long => "--aws-region AWS_REGION",
+    :description => "AWS Region",
+    :default => "us-east-1"
+
+  option :aws_access_key_id,
+    :long => "--aws-access-key-id AWS_ACCESS_KEY_ID",
+    :description => "AWS Access Key ID"
+
+  option :aws_secret_access_key,
+    :long => "--aws-secret-access-key AWS_SECRET_ACCESS_KEY",
+    :description => "AWS Secret Access Key"
+
+  def load_config(argv=ARGV)
+    parse_options(argv)
+    if File.exist?(config[:config_file])
+      SensuPackageConfig.from_file(config[:config_file])
+    else
+      puts "Skipping config file #{config[:config_file]} as it does not exist"
+    end
+    config.merge!(SensuPackageConfig)
+  end
+
 end
 
-def fetch_artifacts(artifacts)
+def fetch_artifacts(aws_config, bucket, artifacts)
   puts "fetching artifacts..."
 
   # connect to s3 here
-  @s3 ||= Aws::S3::Client.new(:region => ENV["AWS_REGION"])
+  @s3 ||= Aws::S3::Client.new(aws_config)
   artifacts.each do |destination, source|
     destination_dir = File.dirname(destination)
     FileUtils.mkdir_p(destination_dir)
@@ -57,10 +95,10 @@ def fetch_artifacts(artifacts)
       puts "Skipping #{source} as #{destination} already exists"
     else
       begin
-        puts "Downloading sensu-omnibus-artifacts/#{source} => #{destination}"
+        puts "Downloading #{bucket}/#{source} => #{destination}"
         resp = @s3.get_object(
           :response_target => destination,
-          :bucket => 'sensu-omnibus-artifacts',
+          :bucket => bucket,
           :key => source
         )
         puts resp.metadata
@@ -94,11 +132,25 @@ def run_commands(commands)
 end
 
 cli = SensuPackageCLI.new
-cli.parse_options
+cli.load_config
 channel = cli.config[:channel]
 project = cli.config[:project]
 project_version = cli.config[:project_version]
 build_number = cli.config[:build_number]
+bucket = cli.config[:bucket]
+
+# we can't make these manditory in SensuPackageCLI options due to chicken/egg
+# problem with supporting config file option vs marking aws options as required
+unless (!cli.config[:aws_access_key_id].nil? && !cli.config[:aws_secret_access_key].nil?)
+  raise "AWS Credentials not provided. Please configure via #{cli.config[:config_file]}"
+end
+
+aws_config = {
+  :region => cli.config[:aws_region],
+  :access_key_id => cli.config[:aws_access_key_id],
+  :secret_access_key => cli.config[:aws_secret_access_key]
+}
+
 base_path = "/srv"
 artifacts = {}
 commands = []
