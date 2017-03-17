@@ -77,7 +77,7 @@ PLATFORMS = {
     "base_path" => "/srv/msi",
     "versions" => {
       "2012r2" => {
-        "architectures" => ["x86_64"]
+        "architectures" => ["i386", "x86_64"]
       }
     }
   }
