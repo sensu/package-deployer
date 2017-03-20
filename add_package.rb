@@ -135,6 +135,9 @@ PLATFORMS.each do |name, data|
         when "el"
           filename = "#{project}-#{project_version}-#{build_number}.el#{version}.#{architecture}.rpm"
           destination_path = File.join(base_path, "createrepo", channel, version, architecture, filename)
+        when "mac_os_x"
+          filename = "#{project}-#{project_version}-#{build_number}.dmg"
+          destination_path = File.join(base_path, "osx", channel, version, architecture, filename)
         when "freebsd"
           filename = "#{project}-#{project_version}_#{build_number}.txz"
           abi = "FreeBSD:#{version}:#{architecture}"
