@@ -45,6 +45,23 @@ PLATFORMS = {
       }
     }
   },
+  "mac_os_x" => {
+    "base_path" => "/srv/osx",
+    "versions" => {
+      "10.9" => {
+        "architectures" => ["x86_64"]
+      },
+      "10.10" => {
+        "architectures" => ["x86_64"]
+      },
+      "10.11" => {
+        "architectures" => ["x86_64"]
+      },
+      "10.12" => {
+        "architectures" => ["x86_64"]
+      }
+    }
+  },
   "solaris2" => {
     "base_path" => "/srv/solaris",
     "versions" => {
