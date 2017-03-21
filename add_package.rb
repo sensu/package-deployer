@@ -43,7 +43,7 @@ class SensuPackageCLI
     :exit => 0
 end
 
-def fetch_artifacts(artifacts)
+def fetch_artifacts(artifacts, bucket)
   puts "fetching artifacts..."
 
   # connect to s3 here
@@ -57,10 +57,10 @@ def fetch_artifacts(artifacts)
       puts "Skipping #{source} as #{destination} already exists"
     else
       begin
-        puts "Downloading sensu-omnibus-artifacts/#{source} => #{destination}"
+        puts "Downloading #{bucket}/#{source} => #{destination}"
         resp = @s3.get_object(
           :response_target => destination,
-          :bucket => 'sensu-omnibus-artifacts',
+          :bucket => bucket,
           :key => source
         )
         puts resp.metadata
@@ -102,15 +102,20 @@ build_number = cli.config[:build_number]
 base_path = "/srv"
 artifacts = {}
 commands = []
+bucket = nil
+platforms = nil
 
-platforms = case project
-            when "sensu-enterprise"
-              ENTERPRISE_PLATFORMS
-            when "sensu-enterprise-dashboard"
-              ENTERPRISE_DASHBOARD_PLATFORMS
-            else
-              PLATFORMS
-            end
+case project
+when "sensu-enterprise"
+  platforms = ENTERPRISE_PLATFORMS
+  bucket = "sensu-enterprise-artifacts"
+when "sensu-enterprise-dashboard"
+  platforms = ENTERPRISE_DASHBOARD_PLATFORMS
+  bucket = "sensu-enterprise-artifacts"
+else
+  platforms = PLATFORMS
+  bucket = "sensu-omnibus-artifacts"
+end
 
 platforms.each do |name, data|
   data["versions"].each do |version, details|
@@ -211,6 +216,6 @@ platforms.each do |platform, data|
   end
 end
 
-fetch_artifacts(artifacts)
+fetch_artifacts(artifacts, bucket)
 fix_permissions(platforms)
 run_commands(commands)
