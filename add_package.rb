@@ -12,7 +12,7 @@ class SensuPackageCLI
     :long => "--project PROJECT",
     :default => "sensu",
     :description => "the software project to use",
-    :in => ["sensu", "uchiwa"]
+    :in => ["sensu", "uchiwa", "sensu-enterprise", "sensu-enterprise-dashboard"]
 
   option :channel,
     :short => "-c CHANNEL",
@@ -103,7 +103,16 @@ base_path = "/srv"
 artifacts = {}
 commands = []
 
-PLATFORMS.each do |name, data|
+platforms = case project
+            when "sensu-enterprise"
+              ENTERPRISE_PLATFORMS
+            when "sensu-enterprise-dashboard"
+              ENTERPRISE_DASHBOARD_PLATFORMS
+            else
+              PLATFORMS
+            end
+
+platforms.each do |name, data|
   data["versions"].each do |version, details|
     codenames = if details.key?("codename")
       [details["codename"]].compact.flatten
@@ -130,10 +139,15 @@ PLATFORMS.each do |name, data|
           filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.bff"
           destination_path = File.join(base_path, "aix", channel, version, filename)
         when "debian", "ubuntu"
-          filename = "#{project}_#{project_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : "i386" }.deb"
+          filename = "#{project}_#{project_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : architecture }.deb"
           destination_path = File.join("/tmp", "apt", codename, filename)
         when "el"
-          filename = "#{project}-#{project_version}-#{build_number}.el#{version}.#{architecture}.rpm"
+          case project
+          when "sensu-enterprise", "sensu-enterprise-dashboard"
+            filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.rpm"
+          else
+            filename = "#{project}-#{project_version}-#{build_number}.el#{version}.#{architecture}.rpm"
+          end
           destination_path = File.join(base_path, "createrepo", channel, version, architecture, filename)
         when "mac_os_x"
           filename = "#{project}-#{project_version}-#{build_number}.dmg"
@@ -174,7 +188,7 @@ PLATFORMS.each do |name, data|
 end
 
 # repository re-indexing
-PLATFORMS.each do |platform, data|
+platforms.each do |platform, data|
   case platform
   when "debian", "ubuntu"
     cwd = File.join(base_path, "freight")
@@ -198,5 +212,5 @@ PLATFORMS.each do |platform, data|
 end
 
 fetch_artifacts(artifacts)
-fix_permissions(PLATFORMS)
+fix_permissions(platforms)
 run_commands(commands)

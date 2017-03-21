@@ -99,3 +99,43 @@ PLATFORMS = {
     }
   }
 }
+
+ENTERPRISE_PLATFORMS = {
+  "debian" => {
+    "base_path" => "/srv/freight",
+    "versions" => {
+      "6" => {
+        "codename" => "sensu-enterprise",
+        "architectures" => ["all"]
+      }
+    }
+  },
+  "el" => {
+    "base_path" => "/srv/createrepo",
+    "versions" => {
+      "5" => {
+        "architectures" => ["noarch"]
+      }
+    }
+  }
+}
+
+ENTERPRISE_DASHBOARD_PLATFORMS = {
+  "debian" => {
+    "base_path" => "/srv/freight",
+    "versions" => {
+      "6" => {
+        "codename" => "sensu-enterprise",
+        "architectures" => ["i386", "x86_64"]
+      }
+    }
+  },
+  "el" => {
+    "base_path" => "/srv/createrepo",
+    "versions" => {
+      "5" => {
+        "architectures" => ["i386", "x86_64"]
+      }
+    }
+  }
+}
