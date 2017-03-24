@@ -2,6 +2,7 @@
 require "aws-sdk"
 require "mixlib/cli"
 require "mixlib/shellout"
+require "highline/import"
 require_relative "platforms"
 
 class SensuPackageCLI
@@ -104,6 +105,10 @@ artifacts = {}
 commands = []
 bucket = nil
 platforms = nil
+
+if channel == "stable"
+  exit unless HighLine.agree("\033[31m***WARNING*** Are you sure you want to push to the STABLE channel? (y/n)\033[0m")
+end
 
 case project
 when "sensu-enterprise"
