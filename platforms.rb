@@ -38,7 +38,7 @@ PLATFORMS = {
     "base_path" => "/srv/freebsd",
     "versions" => {
       "10" => {
-        "architectures" => ["i386", "amd64"]
+        "architectures" => ["amd64"]
       },
       "11" => {
         "architectures" => ["amd64"]
