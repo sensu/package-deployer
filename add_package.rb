@@ -34,6 +34,13 @@ class SensuPackageCLI
     :description => "The version of Sensu",
     :required => true
 
+  option :ignore_failures,
+    :short => '-i',
+    :long => '--ignore-failures',
+    :description => 'Proceed without prompting when artifact download failures are encountered',
+    :boolean => true,
+    :default => false
+
   option :help,
     :short => "-h",
     :long => "--help",
@@ -44,30 +51,41 @@ class SensuPackageCLI
     :exit => 0
 end
 
-def fetch_artifacts(artifacts, bucket)
+def fetch_artifacts(artifacts, bucket, ignore_failure=false)
   puts "fetching artifacts..."
 
   # connect to s3 here
   @s3 ||= Aws::S3::Client.new(:region => ENV["AWS_REGION"])
+  @artifact_failures = []
+  hl = HighLine.new
   artifacts.each do |destination, source|
     destination_dir = File.dirname(destination)
     FileUtils.mkdir_p(destination_dir)
 
     # copy from s3 here
     if File.exist?(destination)
-      puts "Skipping #{source} as #{destination} already exists"
+      hl.say("Skipping #{source} as #{destination} already exists")
     else
       begin
-        puts "Downloading #{bucket}/#{source} => #{destination}"
+        hl.say("Downloading #{bucket}/#{source} => #{destination}")
         resp = @s3.get_object(
           :response_target => destination,
           :bucket => bucket,
           :key => source
         )
-        puts resp.metadata
+        hl.say(resp.metadata)
       rescue Aws::S3::Errors::NoSuchKey => e
-        puts "Failed to retrieve #{source}: #{e}"
+        @artifact_failures << "Failed to retrieve #{source}: #{e}"
       end
+    end
+  end
+
+  unless @artifact_failures.empty?
+    hl.say("<%= color('The following artifacts could not be downloaded:', BOLD) %>")
+    @artifact_failures.map { |cmd| log_string = hl.color(cmd, :red) ; hl.say(log_string) }
+    prompt_string = hl.color("***WARNING*** Encountered #{@artifact_failures.count} artifact failures. Would you like to continue? (y/n)", :yellow)
+    unless ignore_failure
+      exit unless hl.agree(prompt_string)
     end
   end
 end
@@ -85,13 +103,22 @@ def fix_permissions(platforms)
 end
 
 def run_commands(commands)
-  puts "running commands..."
+  hl = HighLine.new
+  hl.say "running commands..."
+  @command_failures = []
   commands.each do |command|
-    puts command
+    hl.say(command)
     cmd = Mixlib::ShellOut.new(command)
     cmd.run_command
+    @command_failures << command unless cmd.status.exitstatus == 0
   end
-  puts
+
+  unless @command_failures.empty?
+    hl.say "<%= color('The following commands failed:', BOLD) %>"
+    @command_failures.map {
+      |cmd| log_string = hl.color(cmd, :red) ; hl.say(log_string)
+    }
+  end
 end
 
 cli = SensuPackageCLI.new
@@ -229,6 +256,6 @@ platforms.each do |platform, data|
   end
 end
 
-fetch_artifacts(artifacts, bucket)
+fetch_artifacts(artifacts, bucket, cli.config[:ignore_failures])
 fix_permissions(platforms)
 run_commands(commands)
