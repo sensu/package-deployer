@@ -34,6 +34,13 @@ class SensuPackageCLI
     :description => "The version of Sensu",
     :required => true
 
+  option :ignore_failures,
+    :short => '-i',
+    :long => '--ignore-failures',
+    :description => 'Proceed without prompting when artifact download failures are encountered',
+    :boolean => true,
+    :default => false
+
   option :help,
     :short => "-h",
     :long => "--help",
@@ -44,7 +51,7 @@ class SensuPackageCLI
     :exit => 0
 end
 
-def fetch_artifacts(artifacts, bucket)
+def fetch_artifacts(artifacts, bucket, ignore_failure=false)
   puts "fetching artifacts..."
 
   # connect to s3 here
@@ -77,7 +84,9 @@ def fetch_artifacts(artifacts, bucket)
     hl.say("<%= color('The following artifacts could not be downloaded:', BOLD) %>")
     @artifact_failures.map { |cmd| log_string = hl.color(cmd, :red) ; hl.say(log_string) }
     prompt_string = hl.color("***WARNING*** Encountered #{@artifact_failures.count} artifact failures. Would you like to continue? (y/n)", :yellow)
-    exit unless hl.agree(prompt_string)
+    unless ignore_failure
+      exit unless hl.agree(prompt_string)
+    end
   end
 end
 
@@ -247,6 +256,6 @@ platforms.each do |platform, data|
   end
 end
 
-fetch_artifacts(artifacts, bucket)
+fetch_artifacts(artifacts, bucket, cli.config[:ignore_failures])
 fix_permissions(platforms)
 run_commands(commands)
