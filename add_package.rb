@@ -142,7 +142,7 @@ platforms.each do |name, data|
           File.join(name, version, architecture)
         end
 
-        destination_path = nil
+        filename, destination_path, metadata_filename, metadata_destination_path = nil, nil, nil, nil
 
         case name
         when "aix"
@@ -178,12 +178,19 @@ platforms.each do |name, data|
         when "windows"
           filename = "#{project}-#{project_version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
           destination_path = File.join(base_path, "msi", channel, version, filename)
+          metadata_filename = [ filename, '.metadata.json' ].join
+          metadata_destination_path = File.join(base_path, "msi", channel, version, metadata_filename)
         else
           raise "unsupported platform"
         end
 
-        source_path = File.join(source_path, filename, filename)
-        artifacts[destination_path] = source_path
+        final_source_path = File.join(source_path, filename, filename)
+        artifacts[destination_path] = final_source_path
+
+        unless metadata_filename.nil?
+          metadata_source_path = File.join(source_path, filename, metadata_filename)
+          artifacts[metadata_destination_path] = metadata_source_path
+        end
 
         case name
         when "debian", "ubuntu"
@@ -202,6 +209,7 @@ platforms.each do |platform, data|
   case platform
   when "debian", "ubuntu"
     cwd = File.join(base_path, "freight")
+    commands << "mkdir /srv/freight"
     commands << "cd #{cwd} && sudo -H -u freight -- freight cache -c /srv/freight/freight.conf"
   when "el"
     data["versions"].each do |version, details|
