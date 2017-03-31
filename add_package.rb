@@ -140,6 +140,7 @@ def run_commands(commands)
     @command_failures.map {
       |cmd| log_string = @hl.color(cmd, :red) ; @hl.say(log_string)
     }
+    exit unless HighLine.agree(@hl.color("***WARNING*** Are you sure you want to continue deploying?", :red))
   end
 end
 
@@ -156,7 +157,7 @@ bucket = nil
 platforms = nil
 
 if channel == "stable"
-  exit unless HighLine.agree("\033[31m***WARNING*** Are you sure you want to push to the STABLE channel? (y/n)\033[0m")
+  exit unless HighLine.agree(@hl.color("***WARNING*** Are you sure you want to push to the STABLE channel? (y/n)", :red))
 end
 
 case project
