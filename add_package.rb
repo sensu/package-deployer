@@ -280,6 +280,9 @@ platforms.each do |platform, data|
 end
 
 def purge_cdn(api_key, service_id)
+  login_opts = {
+    :api_key => api_key
+  }
   fastly = Fastly.new(login_opts)
   service = Fastly::Service.new({:id => service_id}, fastly)
   service.purge_all
