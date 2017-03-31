@@ -3,7 +3,31 @@ require "aws-sdk"
 require "mixlib/cli"
 require "mixlib/shellout"
 require "highline/import"
+require "fastly"
 require_relative "platforms"
+
+@hl = HighLine.new
+
+REQUIRED_ENV_VARS = [
+  "AWS_REGION",
+  "AWS_ACCESS_KEY_ID",
+  "AWS_SECRET_ACCESS_KEY",
+  "FASTLY_API_KEY",
+  "FASTLY_SERVICE_ID",
+]
+
+missing_env_vars = []
+
+REQUIRED_ENV_VARS.each do |env_var|
+  unless ENV.has_key?(env_var)
+    missing_env_vars << @hl.color(env_var, :red)
+  end
+end
+
+unless missing_env_vars.empty?
+  @hl.say("Missing required environment variables: #{missing_env_vars.join(', ')}")
+  exit 1
+end
 
 class SensuPackageCLI
   include Mixlib::CLI
@@ -57,23 +81,22 @@ def fetch_artifacts(artifacts, bucket, ignore_failure=false)
   # connect to s3 here
   @s3 ||= Aws::S3::Client.new(:region => ENV["AWS_REGION"])
   @artifact_failures = []
-  hl = HighLine.new
   artifacts.each do |destination, source|
     destination_dir = File.dirname(destination)
     FileUtils.mkdir_p(destination_dir)
 
     # copy from s3 here
     if File.exist?(destination)
-      hl.say("Skipping #{source} as #{destination} already exists")
+      @hl.say("Skipping #{source} as #{destination} already exists")
     else
       begin
-        hl.say("Downloading #{bucket}/#{source} => #{destination}")
+        @hl.say("Downloading #{bucket}/#{source} => #{destination}")
         resp = @s3.get_object(
           :response_target => destination,
           :bucket => bucket,
           :key => source
         )
-        hl.say(resp.metadata)
+        @hl.say(resp.metadata)
       rescue Aws::S3::Errors::NoSuchKey => e
         @artifact_failures << "Failed to retrieve #{source}: #{e}"
       end
@@ -81,11 +104,11 @@ def fetch_artifacts(artifacts, bucket, ignore_failure=false)
   end
 
   unless @artifact_failures.empty?
-    hl.say("<%= color('The following artifacts could not be downloaded:', BOLD) %>")
-    @artifact_failures.map { |cmd| log_string = hl.color(cmd, :red) ; hl.say(log_string) }
-    prompt_string = hl.color("***WARNING*** Encountered #{@artifact_failures.count} artifact failures. Would you like to continue? (y/n)", :yellow)
+    @hl.say("<%= color('The following artifacts could not be downloaded:', BOLD) %>")
+    @artifact_failures.map { |cmd| log_string = @hl.color(cmd, :red) ; @hl.say(log_string) }
+    prompt_string = @hl.color("***WARNING*** Encountered #{@artifact_failures.count} artifact failures. Would you like to continue? (y/n)", :yellow)
     unless ignore_failure
-      exit unless hl.agree(prompt_string)
+      exit unless @hl.agree(prompt_string)
     end
   end
 end
@@ -103,20 +126,19 @@ def fix_permissions(platforms)
 end
 
 def run_commands(commands)
-  hl = HighLine.new
-  hl.say "running commands..."
+  @hl.say "running commands..."
   @command_failures = []
   commands.each do |command|
-    hl.say(command)
+    @hl.say(command)
     cmd = Mixlib::ShellOut.new(command)
     cmd.run_command
     @command_failures << command unless cmd.status.exitstatus == 0
   end
 
   unless @command_failures.empty?
-    hl.say "<%= color('The following commands failed:', BOLD) %>"
+    @hl.say "<%= color('The following commands failed:', BOLD) %>"
     @command_failures.map {
-      |cmd| log_string = hl.color(cmd, :red) ; hl.say(log_string)
+      |cmd| log_string = @hl.color(cmd, :red) ; @hl.say(log_string)
     }
   end
 end
@@ -256,6 +278,13 @@ platforms.each do |platform, data|
   end
 end
 
+def purge_cdn(api_key, service_id)
+  fastly = Fastly.new(login_opts)
+  service = Fastly::Service.new({:id => service_id}, fastly)
+  service.purge_all
+end
+
 fetch_artifacts(artifacts, bucket, cli.config[:ignore_failures])
 fix_permissions(platforms)
 run_commands(commands)
+purge_cdn(ENV["FASTLY_API_KEY"], ENV["FASTLY_SERVICE_ID"])
