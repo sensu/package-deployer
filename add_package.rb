@@ -259,7 +259,7 @@ platforms.each do |platform, data|
   case platform
   when "debian", "ubuntu"
     cwd = File.join(base_path, "freight")
-    commands << "mkdir /srv/freight"
+    commands << "mkdir -p /srv/freight"
     commands << "cd #{cwd} && sudo -H -u freight -- freight cache -c /srv/freight/freight.conf"
   when "el"
     data["versions"].each do |version, details|
