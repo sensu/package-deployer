@@ -95,6 +95,9 @@ PLATFORMS = {
     "versions" => {
       "2012r2" => {
         "architectures" => ["i386", "x86_64"]
+      },
+      "2008r2" => {
+        "architectures" => ["i386", "x86_64"]
       }
     }
   }
