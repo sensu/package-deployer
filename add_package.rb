@@ -280,7 +280,7 @@ platforms.each do |platform, data|
     cwd = File.join(base_path, "msi", channel)
     {
       "2008r2" => ["2008", "2003"],
-      "2012r2" => ["2012"]
+      "2012r2" => ["2012", "2016"]
     }.each_pair do |source, links|
       links.each do |link|
         commands << "cd #{cwd} && ln -sfv #{source} #{link}"
