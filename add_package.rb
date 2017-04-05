@@ -276,6 +276,16 @@ platforms.each do |platform, data|
         commands << "cd #{cwd} && pkg repo ."
       end
     end
+  when "windows"
+    cwd = File.join(base_path, "msi", channel)
+    {
+      "2008r2" => ["2008", "2003"],
+      "2012r2" => ["2012"]
+    }.each_pair do |source, links|
+      links.each do |link|
+        commands << "cd #{cwd} && ln -sfv #{source} #{link}"
+      end
+    end
   end
 end
 
