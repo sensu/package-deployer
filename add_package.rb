@@ -272,7 +272,7 @@ platforms.each do |platform, data|
     data["versions"].each do |version, details|
       details["architectures"].each do |architecture|
         abi = "FreeBSD:#{version}:#{architecture}"
-        cwd = File.join(base_path, "freebsd", abi, channel)
+        cwd = File.join(base_path, "freebsd", channel, abi)
         commands << "cd #{cwd} && pkg repo ."
       end
     end
