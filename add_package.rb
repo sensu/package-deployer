@@ -226,10 +226,13 @@ platforms.each do |name, data|
             destination_path = File.join(base_path, "solaris", "ips", channel, version, filename)
           end
         when "windows"
-          filename = "#{project}-#{project_version}-#{build_number}-#{architecture == "x86_64" ? "x64" : "x86" }.msi"
+          win_architecture = architecture == "x86_64" ? "x64" : "x86"
+          filename = "#{project}-#{project_version}-#{build_number}-#{win_architecture}.msi"
           destination_path = File.join(base_path, "msi", channel, version, filename)
+          latest_symlink_path = File.join(base_path, "msi", channel, version, "#{project}-latest-#{win_architecture}.msi")
           metadata_filename = [ filename, '.metadata.json' ].join
           metadata_destination_path = File.join(base_path, "msi", channel, version, metadata_filename)
+          commands << "ln -sfv #{destination_path} #{latest_symlink_path}"
         else
           raise "unsupported platform"
         end
