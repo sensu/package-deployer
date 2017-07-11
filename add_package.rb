@@ -198,6 +198,8 @@ platforms.each do |name, data|
         when "aix"
           filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.bff"
           destination_path = File.join(base_path, "aix", channel, version, filename)
+          latest_symlink_path = File.join(base_path, "aix", channel, version, "#{project}-latest.#{architecture}.bff")
+          commands << "ln -sfv #{destination_path} #{latest_symlink_path}"
         when "debian", "ubuntu"
           filename = "#{project}_#{project_version}-#{build_number}_#{architecture == "x86_64" ? "amd64" : architecture }.deb"
           destination_path = File.join("/tmp", "apt", codename, filename)
@@ -212,18 +214,26 @@ platforms.each do |name, data|
         when "mac_os_x"
           filename = "#{project}-#{project_version}-#{build_number}.dmg"
           destination_path = File.join(base_path, "osx", channel, version, architecture, filename)
+          latest_symlink_path = File.join(base_path, "osx", channel, version, architecture, "#{project}-latest.dmg")
+          commands << "ln -sfv #{destination_path} #{latest_symlink_path}"
         when "freebsd"
           filename = "#{project}-#{project_version}_#{build_number}.txz"
           abi = "FreeBSD:#{version}:#{architecture}"
+          latest_symlink_path = File.join(base_path, "freebsd", channel, abi, project, "#{project}-latest.txz")
           destination_path = File.join(base_path, "freebsd", channel, abi, project, filename)
+          commands << "ln -sfv #{destination_path} #{latest_symlink_path}"
         when "solaris2"
           case version
           when "5.10"
             filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.solaris"
             destination_path = File.join(base_path, "solaris", "pkg", channel, version, filename)
+            latest_symlink_path = File.join(base_path, "solaris", "pkg", channel, version, "#{project}-latest.solaris")
+            commands << "ln -sfv #{destination_path} #{latest_symlink_path}"
           when "5.11"
             filename = "#{project}-#{project_version}-#{build_number}.#{architecture}.p5p"
             destination_path = File.join(base_path, "solaris", "ips", channel, version, filename)
+            latest_symlink_path = File.join(base_path, "solaris", "ips", channel, version, "#{project}-latest.p5p")
+            commands << "ln -sfv #{destination_path} #{latest_symlink_path}"
           end
         when "windows"
           win_architecture = architecture == "x86_64" ? "x64" : "x86"
