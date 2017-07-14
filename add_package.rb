@@ -12,8 +12,6 @@ REQUIRED_ENV_VARS = [
   "AWS_REGION",
   "AWS_ACCESS_KEY_ID",
   "AWS_SECRET_ACCESS_KEY",
-  "FASTLY_API_KEY",
-  "FASTLY_SERVICE_ID",
 ]
 
 missing_env_vars = []
@@ -303,12 +301,16 @@ platforms.each do |platform, data|
 end
 
 def purge_cdn(api_key, service_id)
-  login_opts = {
-    :api_key => api_key
-  }
-  fastly = Fastly.new(login_opts)
-  service = Fastly::Service.new({:id => service_id}, fastly)
-  service.purge_all
+  if (api_key.nil? || service_id.nil?)
+    @hl.color("WARNING: Skipping CDN purge as API key and Service ID were not provided", :red)
+  else
+    login_opts = {
+      :api_key => api_key
+    }
+    fastly = Fastly.new(login_opts)
+    service = Fastly::Service.new({:id => service_id}, fastly)
+    service.purge_all
+  end
 end
 
 fetch_artifacts(artifacts, bucket, cli.config[:ignore_failures])
