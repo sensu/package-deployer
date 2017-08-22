@@ -17,6 +17,10 @@ PLATFORMS = {
       "8" => {
         "codename" => "jessie",
         "architectures" => ["x86_64"]
+      },
+      "9" => {
+        "codename" => "stretch",
+        "architectures" => ["x86_64"]
       }
     }
   },
