@@ -2,7 +2,7 @@ PLATFORMS = {
   "aix" => {
     "base_path" => "/srv/aix",
     "versions" => {
-      "6.1" => {
+      "7.2" => {
         "architectures" => ["powerpc"]
       }
     }
