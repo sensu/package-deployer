@@ -88,6 +88,10 @@ PLATFORMS = {
       "16.04" => {
         "codename" => "xenial",
         "architectures" => ["x86_64"]
+      },
+      "18.04" => {
+        "codename" => "bionic",
+        "architectures" => ["x86_64"]
       }
     }
   },
