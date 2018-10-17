@@ -67,7 +67,7 @@ PLATFORMS = {
     "base_path" => "/srv/solaris",
     "versions" => {
       "5.10" => {
-        "architectures" => ["i386"]
+        "architectures" => ["i386", "sparc"]
       },
       "5.11" => {
         "architectures" => ["i386"]
