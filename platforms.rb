@@ -10,10 +10,6 @@ PLATFORMS = {
   "debian" => {
     "base_path" => "/srv/freight",
     "versions" => {
-      "7" => {
-        "codename" => "wheezy",
-        "architectures" => ["i386", "x86_64"],
-      },
       "8" => {
         "codename" => "jessie",
         "architectures" => ["x86_64"]
